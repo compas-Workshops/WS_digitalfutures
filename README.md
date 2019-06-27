@@ -7,8 +7,22 @@ During this workshop we will use COMPAS to design and realise a concrete shell w
 * https://github.com/compas-dev/compas
 * https://compas-dev.github.io/main
 * https://forum.compas-framework.org/
+* https://github.com/BlockResearchGroup/WS_digitalfutures
+* https://github.com/BlockResearchGroup/compas_fofin
+* https://github.com/BlockResearchGroup/compas_fofin-UI
 
 ## Schedule
+
+Day       | Morning             | Afternoon
+---       | -------             | ---------
+Saturday  | Intro to COMPAS     | compas_fofin
+Sunday    | Design explorations | Physical tests
+Monday    | Materialisation     | Detailing
+Tuesday   | Scaffolding         | Assembly
+Wednesday | Casting             | Casting
+Thursday  |                     |
+Friday    |                     |
+
 
 ## Installation
 
@@ -16,6 +30,4 @@ During this workshop we will use COMPAS to design and realise a concrete shell w
 * [Instructions for Windows](windows.md)
 
 ## First Steps
-
-## Getting Help
 

@@ -2,14 +2,13 @@
 
 ## Requirements
 
-* Anaconda 3 (with Python 3.7)
-* Rhino for Mac
-* Blender
+* [Anaconda 3 (with Python 3.7)](https://repo.anaconda.com/archive/Anaconda3-2019.03-MacOSX-x86_64.pkg)
+* [Rhino](https://www.rhino3d.com/download)
 * Visual Studio Code
 * Git (XCode command line tools)
 * SourceTree
 
-## Workshop files
+## Preparation
 
 Download the workshop files from the GitHub repo at https://www.github.com/BlockResearchGroup/WS_digitalfutures. Unzip the archive at a location on your computer that is easily accessible. The recommended location is in a folder on your home drive.
 
