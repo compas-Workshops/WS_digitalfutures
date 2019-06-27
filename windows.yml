@@ -1,0 +1,9 @@
+name: digitalfutures
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.6
+  - pip>=19.0
+  - COMPAS>=0.7.0
+  - pip:
+    - git+https://github.com/BlockResearchGroup/compas_fofin.git#egg=compas_fofin 
