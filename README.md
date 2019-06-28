@@ -15,13 +15,13 @@ During this workshop we will use COMPAS to design and realise a concrete shell w
 
 Day       | Morning             | Afternoon
 ---       | -------             | ---------
-Saturday  | Intro to COMPAS     | compas_fofin
+Saturday  | -                   | COMPAS basics & `compas_fofin`
 Sunday    | Design explorations | Physical tests
 Monday    | Materialisation     | Detailing
-Tuesday   | Scaffolding         | Assembly
+Tuesday   | Assembly            | Assembly
 Wednesday | Casting             | Casting
-Thursday  |                     |
-Friday    |                     |
+Thursday  | Documentation       | COMPAS advanced
+Friday    | Demoulding          | Demoulding
 
 
 ## Installation
