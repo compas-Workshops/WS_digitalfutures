@@ -4,21 +4,20 @@
 
 * [Anaconda 3 (with Python 3.7)](https://repo.anaconda.com/archive/Anaconda3-2019.03-MacOSX-x86_64.pkg)
 * [Rhino](https://www.rhino3d.com/download)
-* Visual Studio Code
-* Git (XCode command line tools)
-* SourceTree
+* [Visual Studio Code](https://code.visualstudio.com/)
+* [Git](https://git-scm.com/downloads) (or XCode command line tools)
+
+Make sure to install Anaconda on your home drive, which should be the recommended location. 
+
+![Mac Home](images/mac_anaconda.png)
 
 ## Preparation
 
 Download the workshop files from the GitHub repo at https://www.github.com/BlockResearchGroup/WS_digitalfutures. Unzip the archive at a location on your computer that is easily accessible. The recommended location is in a folder on your home drive.
 
-To access your home folder, open Finder and hit `SHIFT+COMMAND+H` or select `Home` from the `Go` menu of the Finder app.
-
-![Mac Home](images/mac_home.png)
+![Mac Home](images/mac_workshop.png)
 
 ## Installation
-
-*If you run into problems during the installation procedure, please check the section with known issues at the bottom of this page.*
 
 Please use the Terminal app to execute the various steps of the installation procedure. To open the Terminal app, hit `COMMAND+SPACE` and type "Terminal".
 
@@ -39,8 +38,6 @@ COMPAS is available through the `conda-forge` channel. Add the channel to your c
 ```bash
 conda config --add channels conda-forge
 ```
-
-![Mac conda-forge](images/mac_conda-forge.png)
 
 **3. Create a virtual environment**
 
@@ -72,8 +69,6 @@ Install the core Python packages of the COMPAS framework in the active environme
 conda install COMPAS>=0.7.0
 ```
 
-![Mac COMPAS](images/mac_install-compas.png)
-
 **6. Install compas_fofin**
 
 Install `compas_fofin`, a Python package for designing cable-net structures.
@@ -82,25 +77,19 @@ Install `compas_fofin`, a Python package for designing cable-net structures.
 pip install git+https://www.github.com/BlockResearchGroup/compas_fofin.git#egg=compas_fofin
 ```
 
-![Mac compas_fofin](images/mac_install-compas-fofin.png)
-
 **7. Download compas_fofin-UI**
 
-Download the Rhino UI for `compas_fofin` from the GitHub repo: https://www.github.com/BlockResearchGroup/compas_fofin-UI.
-
-![Mac compas_fofin-UI](images/mac_download-compas-fofin-UI.png)
+Download the Rhino UI for `compas_fofin` from the GitHub repo: https://www.github.com/BlockResearchGroup/compas_fofin-UI. For example, to the same location as the workshop files.
 
 ## Rhino Configuration
 
-**1. Install compas_fofin**
+**1. Install COMPAS packages**
 
 With the "digitalfutures" environment active, install COMPAS and `compas_fofin` for Rhino.
 
 ```bash
 python -m compas_rhino.install -p compas compas_rhino compas_fofin
 ```
-
-![Mac Rhino installation](images/mac_install-for-rhino.png)
 
 The packages will become available the next time you start Rhino.
 
@@ -109,7 +98,6 @@ The packages will become available the next time you start Rhino.
 Navigate to the location where you downloaded and unzipped the `compas_fofin-UI` repo.
 
 ```bash
-python -m compas_rhino.install_plugin FOFIN{...}
+python -m compas_rhino.install_plugin FOFIN{7ea0207d-965a-4982-abc7-f60810ae2626}
 ```
 
-## Known Issues

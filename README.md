@@ -29,5 +29,10 @@ Friday    | Demoulding          | Demoulding
 * [Instructions for Mac](mac.md)
 * [Instructions for Windows](windows.md)
 
-## First Steps
+## Examples
 
+* `01_shortestpath_plot`
+* `02_dynamicrelaxation_live`
+* `03_smoothingonsurface_rhino`
+* `04_interactivesubd_rhino`
+* `07_numpy_rhino`
