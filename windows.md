@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* [Anaconda 3 (with Python 3.7)](https://repo.anaconda.com/archive/Anaconda3-2019.03-MacOSX-x86_64.pkg)
+* [Anaconda 3](https://repo.anaconda.com/archive/Anaconda3-2019.03-MacOSX-x86_64.pkg)
 * [Rhino](https://www.rhino3d.com/download)
 * [Visual Studio Code](https://code.visualstudio.com/)
 * [Git](https://git-scm.com/downloads)
@@ -60,7 +60,7 @@ conda config --add channels conda-forge
 Create a virtual environment for this workshop named "digitalfutures" running on Python 3.7 (`python=3.7`), and install `pip`.
 
 ```bash
-conda create -n digitalfutures python=3.7 pip
+conda create -n digitalfutures python=3.6 pip
 ```
 
 ![Windows virtual environment](images/windows_virtual-environment.png)
@@ -82,7 +82,7 @@ conda activate digitalfutures
 Install the core Python packages of the COMPAS framework in the active environment.
 
 ```bash
-conda install COMPAS>=0.7.0
+conda install COMPAS=0.7.1
 ```
 
 **6. Install compas_fofin**
@@ -111,7 +111,7 @@ Import `compas` and print the version number.
 ```python
 >>> import compas
 >>> compas.__version__
-'0.7.0'
+'0.7.1'
 ```
 
 Import `compas_fofin` and print the version number.
