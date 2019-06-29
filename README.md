@@ -31,8 +31,10 @@ Friday    | Demoulding          | Demoulding
 
 ## Examples
 
-* `01_shortestpath_plot`
-* `02_dynamicrelaxation_live`
-* `03_smoothingonsurface_rhino`
-* `04_interactivesubd_rhino`
-* `07_numpy_rhino`
+The examples are in the following folders of the workshop repository.
+
+* `examples/01_shortestpath_plot`
+* `examples/02_dynamicrelaxation_live`
+* `examples/03_smoothingonsurface_rhino`
+* `examples/04_interactivesubd_rhino`
+* `examples/07_numpy_rhino`
