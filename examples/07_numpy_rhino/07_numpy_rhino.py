@@ -1,37 +1,47 @@
-from compas.utilities import pairwise
+import compas
 from compas.datastructures import Mesh
 from compas.rpc import Proxy
 from compas_rhino.artists import MeshArtist
 
-# make the proxy server for remote procedure calls ro compas.geometry
-proxy = Proxy('compas.geometry')
+# create a proxy for the numerical package of COMPAS
+numerical = Proxy('compas.numerical', python='pythonw')
 
-# define points of the CDT
-points = [
-    [2.994817685045075, 10.855606612493078, 0.0],
-    [4.185204599300653, 9.527867361977242, 0.0],
-    [4.414125159734419, 10.718254276232818, 0.0],
-    [5.925000858597267, 9.344730913630228, 0.0],
-    [8.900968144236211, 10.809822500406325, 0.0],
-    [9.496161601363999, 8.566401008155429, 0.0],
-    [7.710581229980631, 7.9254234389408875, 0.0],
-    [7.847933566240888, 6.414547740078039, 0.0],
-    [3.9104999267801377, 4.9036720412151915, 0.0],
-    [5.2909301507195865, 6.342692886748852, 0.0]
-]
+# make a mesh from a sample OBJ file
+mesh = Mesh.from_obj(compas.get('faces.obj'))
 
-# define constrained segements of the CDT
-segments = list(pairwise(list(range(len(points))) + [0]))
+# assign default values for loads and force densities
+mesh.update_default_vertex_attributes({'px': 0.0, 'py': 0.0, 'pz': 0.0})
+mesh.update_default_edge_attributes({'q': 1.0})
 
-# compute vertices and faces of the CDT
-vertices, faces = proxy.conforming_delaunay_triangle(points, segments)
+# make a map between vertex keys (dicts)
+# and vertex indices (lists, arrays)
+key_index = mesh.key_index()
 
-# make mesh of the vertices and faces of the CDT
-mesh = Mesh.from_vertices_and_faces(vertices, faces)
+# convert data to a numerical format
+xyz   = mesh.get_vertices_attributes('xyz')
+edges = [(key_index[u], key_index[v]) for u, v in mesh.edges()]
+fixed = [key_index[key] for key in mesh.vertices_where({'vertex_degree': 2})]
+q     = mesh.get_edges_attribute('q', 1.0)
+loads = mesh.get_vertices_attributes(('px', 'py', 'pz'), (0.0, 0.0, 0.0))
+
+# run the force density algorithm
+# through the proxy
+xyz, q, f, l, r = numerical.fd_numpy(xyz, edges, fixed, q, loads)
+
+# update the mesh with the result
+for key, attr in mesh.vertices(True):
+    index = key_index[key]
+    attr['x'] = xyz[index][0]
+    attr['y'] = xyz[index][1]
+    attr['z'] = xyz[index][2]
+
+for index, (u, v, attr) in enumerate(mesh.edges(True)):
+    attr['f'] = f[index][0]
+    attr['l'] = l[index][0]
 
 # visualise
-artist = MeshArtist(mesh, layer="RPC::CDT")
-artist.clear_layer()
+artist = MeshArtist(mesh)
 artist.draw_vertices()
-artist.draw_vertexlabels()
+artist.draw_edges()
 artist.draw_faces()
+artist.redraw()
