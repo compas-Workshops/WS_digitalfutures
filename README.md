@@ -66,7 +66,7 @@ conda install COMPAS=0.7.1
 ```
 
 ```bash
-pip install git+https:://www.github.com/BlockResearchGroup/compas_fofin.git#egg=compas_fofin
+pip install git+https:://www.github.com/BlockResearchGroup/compas_fofin.git#egg=compas_fofin --upgrade
 ```
 
 ```bash
