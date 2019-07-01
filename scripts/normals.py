@@ -9,7 +9,7 @@ from compas_fofin.rhino import ShellArtist
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
-FILE_I = os.path.join(DATA, 'torus4.json')
+FILE_I = os.path.join(DATA, 'FINAL', 'before.json')
 
 shell = Shell.from_json(FILE_I)
 

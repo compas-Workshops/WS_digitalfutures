@@ -3,12 +3,12 @@ from numpy import array
 from numpy import float64
 
 import compas
-import compas_hilo
+import compas_fofin
 
 from compas.numerical import dr_numpy
 
-from compas_hilo.datastructures import Shell
-from compas_hilo.utilities import NumericalSelfweightCalculator
+from compas_fofin.datastructures import Shell
+from compas_fofin.utilities import SelfweightCalculator
 
 
 HERE = os.path.dirname(__file__)
@@ -42,13 +42,11 @@ radius = array([attr['r'] for u, v, attr in shell.edges_where({'is_edge': True},
 # note: this should be based on the designed geometry
 #       not the geometry of the unloaded state
 
-density = shell.attributes['density']
-density = 0.5 * (12.8 + 18.6)
-density = 0.5 * (12.8 + 14.0)
+density = 25
 
-shell.set_vertices_attribute('c1', 0.03)
+shell.set_vertices_attribute('t', 0.04)
 
-calculate_sw = NumericalSelfweightCalculator(shell, density=density, thickness_attr_name='c1')
+calculate_sw = SelfweightCalculator(shell, density=density, thickness_attr_name='c1')
 sw = calculate_sw(xyz)
 p[:, 2] = - 1.0 * sw[:, 0]
 
@@ -80,4 +78,4 @@ for u, v, attr in shell.edges_where({'is_edge': True}, True):
 # 
 # ==============================================================================
 
-shell.to_json(compas_hilo.get('cablenet-loaded-concrete1.json'))
+shell.to_json(FILE_O)
