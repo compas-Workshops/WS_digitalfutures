@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 from numpy import array
 from numpy import float64
@@ -8,16 +12,20 @@ import compas_fofin
 from compas.numerical import dr_numpy
 from compas_fofin.datastructures import Shell
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
+
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
 
-FILE_I = os.path.join(DATA, 'geometry.json')
-FILE_O = os.path.join(DATA, 'cablenet.json')
+FILE_I = os.path.join(DATA, 'data-materialised.json')
+FILE_O = os.path.join(DATA, 'data-materialised-unloaded.json')
 
 shell = Shell.from_json(FILE_I)
 
 # ==============================================================================
-# unload
+# Unload
 # ==============================================================================
 
 key_index = shell.key_index()
@@ -36,13 +44,13 @@ E      = array([attr['E'] * 1e+6 for u, v, attr in shell.edges_where({'is_edge':
 radius = array([attr['r'] for u, v, attr in shell.edges_where({'is_edge': True}, True)], dtype=float64).reshape((-1, 1))
 
 # ==============================================================================
-# relax
+# Run DR
 # ==============================================================================
 
 xyz, q, f, l, r = dr_numpy(xyz, edges, fixed, p, qpre, fpre, lpre, l0, E, radius, kmax=1000)
 
 # ==============================================================================
-# update
+# Update
 # ==============================================================================
 
 for key, attr in shell.vertices(True):
@@ -62,7 +70,7 @@ for u, v, attr in shell.edges_where({'is_edge': True}, True):
     attr['l'] = l[index, 0]
 
 # ==============================================================================
-# serialize
+# Serialize
 # ==============================================================================
 
 shell.to_json(FILE_O)

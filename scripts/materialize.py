@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 from math import pi
 from math import sqrt
@@ -5,30 +9,26 @@ from math import sqrt
 import compas_fofin
 from compas_fofin.datastructures import Shell
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
+
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
 
-FILE_I = os.path.join(DATA, 'box.json')
-FILE_O = os.path.join(DATA, 'cablenet.json')
+FILE_I = os.path.join(DATA, 'data.json')
+FILE_O = os.path.join(DATA, 'data-materialised.json')
 
 shell = Shell.from_json(FILE_I)
 
 # ==============================================================================
-# cables
+# Compute unstressed length
 # ==============================================================================
-
-# E = 210.0
 
 for u, v, attr in shell.edges_where({'is_edge': True}, True):
     f = attr['f']
-    E = attr['E'] or 210
-
-    # f_factored_N = 1.0 * f * 1e3
-    # S_factored_N_m2 = pi * 400 * 1e6
-
-    # r = sqrt(f_factored_N / S_factored_N_m2) * 1e3
+    E = 210
     r = 2
-
     A = 3.14159 * r**2
 
     x = f / (E * A)
@@ -39,8 +39,12 @@ for u, v, attr in shell.edges_where({'is_edge': True}, True):
     print(l0)
     print()
 
+    attr['E'] = E
+    attr['r'] = r
+    attr['l0'] = l0
+
 # ==============================================================================
-# serialisation
+# Serialize
 # ==============================================================================
 
 shell.to_json(FILE_O)

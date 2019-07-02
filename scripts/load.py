@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 from numpy import array
 from numpy import float64
@@ -10,17 +14,20 @@ from compas.numerical import dr_numpy
 from compas_fofin.datastructures import Shell
 from compas_fofin.utilities import SelfweightCalculator
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
 
-FILE_I = os.path.join(DATA, 'geometry.json')
-FILE_O = os.path.join(DATA, 'cablenet.json')
+FILE_I = os.path.join(DATA, 'data-materialised-unloaded.json')
+FILE_O = os.path.join(DATA, 'data-materialised-loaded.json')
 
 shell = Shell.from_json(FILE_I)
 
 # ==============================================================================
-# load
+# Load
 # ==============================================================================
 
 key_index = shell.key_index()
@@ -38,10 +45,6 @@ l0     = array([attr['l0'] for u, v, attr in shell.edges_where({'is_edge': True}
 E      = array([attr['E'] * 1e+6 for u, v, attr in shell.edges_where({'is_edge': True}, True)], dtype=float64).reshape((-1, 1))
 radius = array([attr['r'] for u, v, attr in shell.edges_where({'is_edge': True}, True)], dtype=float64).reshape((-1, 1))
 
-# compute the weight of the frist layer of concrete
-# note: this should be based on the designed geometry
-#       not the geometry of the unloaded state
-
 density = 25
 
 shell.set_vertices_attribute('t', 0.04)
@@ -51,13 +54,13 @@ sw = calculate_sw(xyz)
 p[:, 2] = - 1.0 * sw[:, 0]
 
 # ==============================================================================
-# relax
+# Run DR
 # ==============================================================================
 
 xyz, q, f, l, r = dr_numpy(xyz, edges, fixed, p, qpre, fpre, lpre, l0, E, radius, kmax=15000, tol1=0.01)
 
 # ==============================================================================
-# update
+# Update
 # ==============================================================================
 
 for key, attr in shell.vertices(True):
@@ -75,7 +78,7 @@ for u, v, attr in shell.edges_where({'is_edge': True}, True):
     attr['l'] = l[index, 0]
 
 # ==============================================================================
-# 
+# Serialize
 # ==============================================================================
 
 shell.to_json(FILE_O)

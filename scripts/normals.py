@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 import os
 import compas
@@ -7,11 +9,19 @@ from compas.geometry import add_vectors
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
+
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
-FILE_I = os.path.join(DATA, 'FINAL', 'before.json')
+FILE_I = os.path.join(DATA, 'data.json')
 
 shell = Shell.from_json(FILE_I)
+
+# ==============================================================================
+# Compute normals
+# ==============================================================================
 
 vertexcolor = {key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})}
 
@@ -29,7 +39,11 @@ for key in shell.vertices():
         'name'  : "{}.{}.normal".format(shell.name, key)
     })
 
-artist = ShellArtist(shell, layer="Normals")
+# ==============================================================================
+# Visualise
+# ==============================================================================
+
+artist = ShellArtist(shell, layer="Geometry::Normals")
 artist.clear_layer()
 artist.draw_vertices(color=vertexcolor)
 artist.draw_edges()

@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 import os
 import compas
@@ -8,11 +10,19 @@ from compas.geometry import scale_vector
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
+
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
-FILE_I = os.path.join(DATA, 'box.json')
+FILE_I = os.path.join(DATA, 'data.json')
 
 shell = Shell.from_json(FILE_I)
+
+# ==============================================================================
+# Compute thickness vectors
+# ==============================================================================
 
 vertexcolor = {key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})}
 
@@ -43,7 +53,11 @@ for key, attr in shell.vertices(True):
         'name'  : "{}.{}.down".format(shell.name, key)
     })
 
-artist = ShellArtist(shell, layer="Thickness")
+# ==============================================================================
+# Visualize
+# ==============================================================================
+
+artist = ShellArtist(shell, layer="Geometry::Thickness")
 artist.clear_layer()
 artist.draw_vertices(color=vertexcolor)
 artist.draw_edges()

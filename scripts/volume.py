@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 import json
 
@@ -13,20 +17,21 @@ from compas.datastructures import mesh_flip_cycles
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 
+# ==============================================================================
+# Initialise
+# ==============================================================================
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
-FILE_I = os.path.join(DATA, 'FINAL', 'final1_data.json')
-
+FILE_I = os.path.join(DATA, 'data.json')
 
 shell = Shell.from_json(FILE_I)
 
+# ==============================================================================
+# Compute offset surfaces
+# ==============================================================================
 
 thickness = 0.04
-
-# ==============================================================================
-# Surfaces
-# ==============================================================================
 
 edos = shell.copy()
 idos = shell.copy()
@@ -42,7 +47,7 @@ for key in shell.vertices():
     idos.set_vertex_attributes(key, 'xyz', add_vectors(xyz, down))
 
 # ==============================================================================
-# Volume
+# Construct volume
 # ==============================================================================
 
 volume = idos.copy()
@@ -82,7 +87,7 @@ for a, b in pairwise(boundary):
 # Visualize
 # ==============================================================================
 
-artist = ShellArtist(volume, layer="Volume")
+artist = ShellArtist(volume, layer="Geometry::Volume")
 artist.clear_layer()
 artist.draw_mesh(disjoint=True)
 artist.redraw()
