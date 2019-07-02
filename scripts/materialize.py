@@ -25,23 +25,33 @@ shell = Shell.from_json(FILE_I)
 # Compute unstressed length
 # ==============================================================================
 
+force  = [] 
+stress = []
+strain = []
+
+E = 210
+r = 2
+A = 3.14159 * r**2
+
 for u, v, attr in shell.edges_where({'is_edge': True}, True):
     f = attr['f']
-    E = 210
-    r = 2
-    A = 3.14159 * r**2
 
     x = f / (E * A)
     l  = shell.edge_length(u, v)
     l0 = l / (1 + x)
 
-    print(l)
-    print(l0)
-    print()
+    force.append(f)
+    stress.append(f / A)
+    strain.append(l / l0)
 
     attr['E'] = E
     attr['r'] = r
     attr['l0'] = l0
+
+print(A)
+print(max(force))
+print(max(stress))
+print(max(strain))
 
 # ==============================================================================
 # Serialize
