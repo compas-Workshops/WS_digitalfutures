@@ -12,7 +12,7 @@ import compas_fofin
 from compas.numerical import dr_numpy
 
 from compas_fofin.datastructures import Shell
-from compas_fofin.utilities import SelfweightCalculator
+from compas_fofin.loads import SelfweightCalculator
 
 # ==============================================================================
 # Initialise
@@ -45,11 +45,9 @@ l0     = array([attr['l0'] for u, v, attr in shell.edges_where({'is_edge': True}
 E      = array([attr['E'] * 1e+6 for u, v, attr in shell.edges_where({'is_edge': True}, True)], dtype=float64).reshape((-1, 1))
 radius = array([attr['r'] for u, v, attr in shell.edges_where({'is_edge': True}, True)], dtype=float64).reshape((-1, 1))
 
-density = 25
-
+density = 22
 shell.set_vertices_attribute('t', 0.04)
-
-calculate_sw = SelfweightCalculator(shell, density=density, thickness_attr_name='c1')
+calculate_sw = SelfweightCalculator(shell, density=density, thickness_attr_name='t')
 sw = calculate_sw(xyz)
 p[:, 2] = - 1.0 * sw[:, 0]
 
