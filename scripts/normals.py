@@ -6,6 +6,7 @@ import os
 import compas
 import compas_fofin
 from compas.geometry import add_vectors
+from compas.geometry import scale_vector
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 
@@ -29,7 +30,7 @@ lines = []
 for key in shell.vertices():
     a = shell.vertex_coordinates(key)
     n = shell.vertex_normal(key)
-    b = add_vectors(a, n)
+    b = add_vectors(a, scale_vector(n, 0.1))
 
     lines.append({
         'start' : a,

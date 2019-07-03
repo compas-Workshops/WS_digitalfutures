@@ -70,7 +70,8 @@ for cable in cables:
         L += round(l, 1)
         data.append(L)
 
-    data.append(50)
+    L += 50
+    data.append(L)
     lengths.append(data)
 
 # ==============================================================================
