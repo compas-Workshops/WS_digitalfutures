@@ -33,7 +33,7 @@ subd.name = 'Subd'
 # ==============================================================================
 
 subd.update_default_vertex_attributes(shell.default_vertex_attributes)
-subd.update_default_edge_attributes(shell.default_edge_attributes.copy())
+subd.update_default_edge_attributes(shell.default_edge_attributes)
 
 for key, attr in shell.vertices(True):
     if subd.has_vertex(key):
@@ -65,6 +65,7 @@ subd.to_json(FILE_O)
 artist = ShellArtist(subd, layer="Geometry::Subd")
 
 artist.clear_layer()
-artist.draw_vertices(color={key: (255, 0, 0) for key in subd.vertices_where({'is_anchor': True})})
-artist.draw_edges()
+# artist.draw_vertices(color={key: (255, 0, 0) for key in subd.vertices_where({'is_anchor': True})})
+# artist.draw_edges()
+artist.draw_mesh(color=(0, 255, 0))
 artist.redraw()

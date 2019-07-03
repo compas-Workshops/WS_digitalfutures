@@ -4,8 +4,8 @@ from __future__ import division
 
 import os
 
+from openpyxl import Workbook
 from compas.geometry import add_vectors
-from compas.datastructures import mesh_subdivide_quad
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 from compas_fofin.rhino import ShellHelper
@@ -17,7 +17,7 @@ from compas_fofin.rhino import ShellHelper
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'data.json')
-FILE_O = os.path.join(DATA, 'data-subd.json')
+FILE_O = os.path.join(DATA, 'data-fabrication-test.xlsx')
 
 shell = Shell.from_json(FILE_I)
 
@@ -25,31 +25,53 @@ shell = Shell.from_json(FILE_I)
 # Visualize
 # ==============================================================================
 
-artist = ShellArtist(shell, layer="Temp")
+# artist = ShellArtist(shell, layer="Temp")
 
-artist.clear_layer()
-artist.draw_vertices(color={key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})})
-artist.draw_edges()
-artist.redraw()
+# artist.clear_layer()
+# artist.draw_vertices(color={key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})})
+# artist.draw_edges()
+# artist.redraw()
 
 # ==============================================================================
 # Select
 # ==============================================================================
 
-cable = []
+cables = []
 
-edge = ShellHelper.select_edge(shell)
-
-if edge:
+for edge in [(136, 203), (45, 200), (103, 105), (156, 255)]:
+    cable = []
     edges = shell.get_continuous_edges(edge)
     for edge in edges:
         if edge not in cable:
             cable.append(edge)
-    print(cable)
+    cables.append(cable)
 
 # ==============================================================================
 # Lengths
 # ==============================================================================
+
+lengths = []
+
+for cable in cables:
+    data = []
+    L = 0
+    u, v = cable[0]
+    l = shell.edge_length(u, v)
+    l = 1e3 * l
+    L += round(l, 1)
+
+    data.append("{}-{}".format(u, v))
+    data.append(50)
+    data.append(L - 50)
+
+    for u, v in cable[1:]:
+        l = shell.edge_length(u, v)
+        l = 1e3 * l
+        L += round(l, 1)
+        data.append(L)
+
+    data.append(50)
+    lengths.append(data)
 
 # ==============================================================================
 # Export
@@ -60,4 +82,7 @@ wb = Workbook()
 ws = wb.active
 ws.title = "CABLES"
 
-ws.append(...)
+for data in lengths:
+    ws.append(data)
+
+wb.save(FILE_O)
