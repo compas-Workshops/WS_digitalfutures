@@ -20,6 +20,7 @@ from compas.utilities import flatten
 from compas.utilities import pairwise
 from compas.datastructures import Mesh
 from compas.datastructures import mesh_quads_to_triangles
+from compas.datastructures import mesh_flip_cycles
 from compas_plotters import MeshPlotter
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellHelper
@@ -141,10 +142,11 @@ DATA = os.path.join(HERE, '..', 'data')
 FILE_I = os.path.join(DATA, 'data-extended-strips-split.json')
 FILE_O = os.path.join(DATA, 'data-extended-strips-split.json')
 
-thickness = 0.02
+thickness = -0.02
 
 dual = Shell.from_json(FILE_I)
 fabric = dual.copy()
+mesh_flip_cycles(fabric)
 
 for key in dual.vertices():
     normal = dual.vertex_normal(key)
@@ -268,53 +270,53 @@ for mesh in NW_unrolled:
 # Visualize
 # ==============================================================================
 
-# plotter = MeshPlotter(None, figsize=(10, 7))
+plotter = MeshPlotter(None, figsize=(10, 7))
 
-# mesh = WEST_unrolled[0]
+mesh = WEST_unrolled[0]
 
-# points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-# polygon = offset_polygon(points, -0.020)
+points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
+polygon = offset_polygon(points, -0.020)
 
-# polygons = []
-# polygons.append({
-#     'points': polygon
-# })
+polygons = []
+polygons.append({
+    'points': polygon
+})
 
-# fkey = list(mesh.faces_where({'count': 0}))[0]
-# normal = mesh.face_normal(fkey)
+fkey = list(mesh.faces_where({'count': 0}))[0]
+normal = mesh.face_normal(fkey)
 
-# facecolor = {}
-# facecolor[fkey] = (255, 0, 0) if normal[2] > 0 else (0, 0, 255) 
+facecolor = {}
+facecolor[fkey] = (255, 0, 0) if normal[2] > 0 else (0, 0, 255) 
 
-# plotter.mesh = mesh
-# plotter.draw_polygons(polygons)
-# plotter.draw_faces(
-#     text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
-#     facecolor=facecolor)
-# plotter.draw_edges()
+plotter.mesh = mesh
+plotter.draw_polygons(polygons)
+plotter.draw_faces(
+    text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
+    facecolor=facecolor)
+plotter.draw_edges()
 
-# plotter.show()
+plotter.show()
 
 # ==============================================================================
 # Export
 # ==============================================================================
 
 for mesh in SOUTH_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'edos', "{}.json".format(mesh.attributes['name']))
+    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
     mesh.to_json(path)
 
 for mesh in WEST_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'edos', "{}.json".format(mesh.attributes['name']))
+    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
     mesh.to_json(path)
 
 for mesh in NORTH_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'edos', "{}.json".format(mesh.attributes['name']))
+    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
     mesh.to_json(path)
 
 for mesh in SW_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'edos', "{}.json".format(mesh.attributes['name']))
+    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
     mesh.to_json(path)
 
 for mesh in NW_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'edos', "{}.json".format(mesh.attributes['name']))
+    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
     mesh.to_json(path)

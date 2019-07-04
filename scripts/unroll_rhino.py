@@ -18,7 +18,7 @@ from compas_fofin.rhino import ShellArtist
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
-FOLDER = os.path.join(DATA, 'fabric', 'unrolled', 'edos')
+FOLDER = os.path.join(DATA, 'fabric', 'unrolled', 'idos')
 
 # ==============================================================================
 # Visualize
@@ -31,7 +31,8 @@ files = [
     'WEST-00', 'WEST-01', 'WEST-02', 'WEST-03', 'WEST-04',
     'NORTH-00', 'NORTH-01', 'NORTH-02', 'NORTH-03', 'NORTH-04',
     'SW-00', 'WS-00',
-    'NW-00', 'WN-00'
+    'NW-00', 'WN-00',
+    'RING-00', 'RING-01', 'RING-02', 'RING-03', 'RING-04', 'RING-05', 'RING-06', 'RING-07', 'RING-08', 'RING-09', 'RING-10'
 ]
 
 for filename in files:
@@ -47,7 +48,7 @@ for filename in files:
     })
 
     artist.mesh = fabric
-    artist.layer = "Fabric::Unrolled::Edos::{}".format(filename)
+    artist.layer = "Fabric::Unrolled::idos::{}".format(filename)
     artist.clear_layer()
     artist.draw_faces()
     artist.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in fabric.faces(True)})
