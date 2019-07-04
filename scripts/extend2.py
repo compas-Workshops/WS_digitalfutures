@@ -5,10 +5,6 @@ from __future__ import division
 import os
 
 from openpyxl import Workbook
-from openpyxl import utils
-from openpyxl.styles import Font
-from openpyxl.styles import Color
-from openpyxl.styles import colors
 
 from compas.utilities import pairwise
 from compas.geometry import distance_point_point
@@ -53,6 +49,42 @@ def framelines(origin, xaxis, yaxis, zaxis, name):
     return lines
 
 
+def append_to_sheet(sheet, beamA, beamB):
+    for u in beamA:
+        nbrs = shell.vertex_neighbors(u)
+        v = None
+        for nbr in nbrs:
+            if nbr in boundary:
+                continue
+            v = nbr
+            break
+        if v is None:
+            continue
+        edges = shell.get_continuous_edges((u, v), directed=False)
+        last = edges[-1][1]
+        if last in beamB:
+            values = LENGTHS[u][:]
+            values += [shell.edge_length(u, v) for u, v in edges]
+            values += LENGTHS[last][::-1]
+            accumulated = []
+            value = 0
+            for v in values:
+                value += v
+                accumulated.append(value)
+            sheet.append([u] + [round(1e3 * v, 1) for v in accumulated])
+        else:
+            values = LENGTHS[u][:]
+            values += [shell.edge_length(u, v) for u, v in edges[:-1]]
+            values += [shell.edge_length(* edges[-1]) - 0.100]
+            values += [0.100, 0.100]
+            accumulated = []
+            value = 0
+            for v in values:
+                value += v
+                accumulated.append(value)
+            sheet.append([u] + [round(1e3 * v, 1) for v in accumulated])
+
+
 # ==============================================================================
 # Initialise
 # ==============================================================================
@@ -69,12 +101,50 @@ shell = Shell.from_json(FILE_I)
 # ==============================================================================
 
 beams = [
-    [268, 258, 115, 106, 114, 269, 281, 145],
-    # [5, 57, 4, 259, 278, 54, 268],
-    [116, 261, 282, 60, 79, 52, 260, 5]]
+    [268, 258, 115, 106, 114, 269, 281, 145],  # NORTH
+    [57, 4, 259, 278, 54],  # WEST
+    [116, 261, 282, 60, 79, 52, 260, 5],  # SOUTH
+    [146, 270, 117, 107],  # SOUTH
+    [8, 144, 272, 175],  # NORTH
+]
+
+offset = 0.5
+zaxis = [0, 0, 1.0]
+
+p1 = shell.vertex_coordinates(beams[0][1])
+p0 = shell.vertex_coordinates(beams[0][0])
+xaxis = subtract_vectors(p1, p0)
+yaxis = cross_vectors(zaxis, xaxis)
+normal = normalize_vector(yaxis)
+origin = add_vectors(p0, scale_vector(normal, offset))
+NORTH = (origin, normal)
+
+p1 = shell.vertex_coordinates(beams[1][1])
+p0 = shell.vertex_coordinates(beams[1][0])
+xaxis = subtract_vectors(p1, p0)
+yaxis = cross_vectors(zaxis, xaxis)
+normal = normalize_vector(yaxis)
+origin = add_vectors(p0, scale_vector(normal, offset))
+WEST = (origin, normal)
+
+p1 = shell.vertex_coordinates(beams[2][1])
+p0 = shell.vertex_coordinates(beams[2][0])
+xaxis = subtract_vectors(p1, p0)
+yaxis = cross_vectors(zaxis, xaxis)
+normal = normalize_vector(yaxis)
+origin = add_vectors(p0, scale_vector(normal, offset))
+SOUTH = (origin, normal)
+
+planes = [
+    NORTH,
+    WEST,
+    SOUTH,
+    SOUTH,
+    NORTH
+]
 
 # ==============================================================================
-# Beam PCA
+# Horizontal beams
 # ==============================================================================
 
 LINES = []
@@ -83,17 +153,8 @@ POLYGONS = []
 
 LENGTHS = {}
 
-for keys in beams:
-    p1 = shell.vertex_coordinates(keys[1])
-    p0 = shell.vertex_coordinates(keys[0])
-    xaxis = subtract_vectors(p1, p0)
-    zaxis = [0, 0, 1.0]
-    yaxis = cross_vectors(zaxis, xaxis)
-
-    offset = 0.5
-    normal = normalize_vector(yaxis)
-    origin = add_vectors(p0, scale_vector(normal, offset))
-    plane = (origin, normal)
+for i, keys in enumerate(beams):
+    plane = planes[i]
 
     points = []
     for key in keys:
@@ -119,8 +180,6 @@ for keys in beams:
         x4 = a
 
         LENGTHS[key] = [
-            # distance_point_point(x0, x1),
-            # distance_point_point(x1, x2),
             0.1,
             distance_point_point(x2, x3),
             distance_point_point(x3, x4),
@@ -160,9 +219,9 @@ for keys in beams:
     frame = Frame(origin, xaxis, yaxis)
 
     if yaxis[2] > 0:
-        offset = scale_vector(zaxis, -0.05)
+        offset = scale_vector(zaxis, -0.050)
     else:
-        offset = scale_vector(zaxis, +0.05)
+        offset = scale_vector(zaxis, +0.050)
 
     points_xy = [frame.represent_point_in_local_coordinates(point) for point in points]
     box_xy = bounding_box_xy(points_xy)
@@ -190,82 +249,24 @@ wb = Workbook()
 boundary = set(shell.vertices_on_boundary())
 
 beamS = [116, 261, 282, 60, 79, 52, 260, 5]
+beamW = [57, 4, 259, 278, 54]
 beamN = [268, 258, 115, 106, 114, 269, 281, 145]
+beamSE = [146, 270, 117, 107]
+beamNE = [8, 144, 272, 175]
 
-ws = wb.active
-ws.title = "BEAM SOUTH"
+ws_S = wb.active
+ws_S.title = "SOUTH"
+ws_W = wb.create_sheet()
+ws_W.title = "WEST"
+ws_N = wb.create_sheet()
+ws_N.title = "NORTH"
+ws_E = wb.create_sheet()
+ws_E.title = "EAST"
 
-for u in beamS:
-    nbrs = shell.vertex_neighbors(u)
-    v = None
-    for nbr in nbrs:
-        if nbr in boundary:
-            continue
-        v = nbr
-        break
-    if v is None:
-        continue
-    edges = shell.get_continuous_edges((u, v), directed=False)
-    last = edges[-1][1]
-    if last in beamN:
-        values = LENGTHS[u][:]
-        values += [shell.edge_length(u, v) for u, v in edges]
-        values += LENGTHS[last][::-1]
-        accumulated = []
-        value = 0
-        for v in values:
-            value += v
-            accumulated.append(value)
-        ws.append([u] + [round(1e3 * v, 1) for v in accumulated])
-    else:
-        values = LENGTHS[u][:]
-        values += [shell.edge_length(u, v) for u, v in edges[:-1]]
-        values += [shell.edge_length(* edges[-1]) - 0.1]
-        values += [0.1, 0.1]
-        accumulated = []
-        value = 0
-        for v in values:
-            value += v
-            accumulated.append(value)
-        ws.append([u] + [round(1e3 * v, 1) for v in accumulated])
-
-ws = wb.create_sheet()
-ws.title = "BEAM NORTH"
-
-for u in beamN:
-    nbrs = shell.vertex_neighbors(u)
-    v = None
-    for nbr in nbrs:
-        if nbr in boundary:
-            continue
-        v = nbr
-        break
-    if v is None:
-        continue
-    edges = shell.get_continuous_edges((u, v), directed=False)
-    last = edges[-1][1]
-    if last in beamS:
-        values = LENGTHS[u][:]
-        values += [shell.edge_length(u, v) for u, v in edges]
-        values += LENGTHS[last][::-1]
-        print(len(values))
-        accumulated = []
-        value = 0
-        for v in values:
-            value += v
-            accumulated.append(value)
-        ws.append([u] + [round(1e3 * v, 1) for v in accumulated])
-    else:
-        values = LENGTHS[u][:]
-        values += [shell.edge_length(u, v) for u, v in edges[:-1]]
-        values += [shell.edge_length(* edges[-1]) - 0.1]
-        values += [0.1, 0.1]
-        accumulated = []
-        value = 0
-        for v in values:
-            value += v
-            accumulated.append(value)
-        ws.append([u] + [round(1e3 * v, 1) for v in accumulated])
+append_to_sheet(ws_S, beamS, beamN)
+append_to_sheet(ws_W, beamW, [])
+append_to_sheet(ws_N, beamN, beamS)
+append_to_sheet(ws_E, beamSE, beamNE)
 
 wb.save(FILE_O)
 
@@ -273,12 +274,17 @@ wb.save(FILE_O)
 # Visualize
 # ==============================================================================
 
-# for key in EXTRA:
-#     print(key, 1e3 * EXTRA[key])
+# artist = ShellArtist(shell)
 
-# artist = ShellArtist(shell, layer="Scaffolding::Points")
+# artist.layer = "Scaffolding::Points"
 # artist.clear_layer()
 # artist.draw_points(POINTS)
+
+# artist.layer = "Scaffolding::Cables"
+# artist.clear_layer()
 # artist.draw_lines(LINES)
+
+# artist.layer = "Scaffolding::Beams"
+# artist.clear_layer()
 # artist.draw_polygons(POLYGONS)
-# artist.redraw()
+

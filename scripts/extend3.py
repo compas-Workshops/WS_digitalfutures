@@ -69,46 +69,13 @@ POINTS = []
 LINES = []
 
 # ==============================================================================
-# Horizontal clamps
-# ==============================================================================
-
-# for keys in horizontal:
-#     p1 = shell.vertex_coordinates(keys[1])
-#     p0 = shell.vertex_coordinates(keys[0])
-#     xaxis = subtract_vectors(p1, p0)
-#     zaxis = [0, 0, 1.0]
-#     yaxis = cross_vectors(zaxis, xaxis)
-
-#     offset = 0.040
-#     normal = normalize_vector(yaxis)
-#     origin = add_vectors(p0, scale_vector(normal, offset))
-#     plane = (origin, normal)
-
-#     points = []
-#     for key in keys:
-#         a = shell.vertex_coordinates(key)
-#         r = shell.get_vertex_attributes(key, ['rx', 'ry', 'rz'])
-#         b = add_vectors(a, r)
-
-#         line = a, b
-#         x = intersection_line_plane(line, plane)
-
-#         points.append(x)
-#         POINTS.append({
-#             'pos'   : x,
-#             'color' : (0, 0, 255),
-#             'name'  : "{}.{}.extensions".format(shell.name, key)
-#         })
-
-# ==============================================================================
-# Vetical clamps
+# Clamps
 # ==============================================================================
 
 for keys in beams:
     vectors = [shell.get_vertex_attributes(key, ['rx', 'ry', 'rz']) for key in keys[1:-1]]
     average = [-sum(axis) / len(vectors) for axis in zip(*vectors)]
     average = normalize_vector(average)
-    print(average)
 
     a = shell.vertex_coordinates(keys[0])
     b = shell.vertex_coordinates(keys[1])
