@@ -21,7 +21,7 @@ from compas.utilities import pairwise
 from compas.datastructures import Mesh
 from compas.datastructures import mesh_quads_to_triangles
 from compas.datastructures import mesh_flip_cycles
-from compas_plotters import MeshPlotter
+# from compas_plotters import MeshPlotter
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellHelper
 from compas_fofin.rhino import ShellArtist
@@ -265,21 +265,21 @@ for mesh in NW_unrolled:
 # Plot (for checking)
 # ==============================================================================
 
-mesh = WEST_unrolled[0]
+# mesh = WEST_unrolled[0]
 
-points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-polygons = [{'points': offset_polygon(points, SEEM)}]
+# points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
+# polygons = [{'points': offset_polygon(points, SEEM)}]
 
-fkey = list(mesh.faces_where({'count': 0}))[0]
-facecolor = {fkey: COLOR}
+# fkey = list(mesh.faces_where({'count': 0}))[0]
+# facecolor = {fkey: COLOR}
 
-PLOTTER = MeshPlotter(mesh, figsize=(10, 7))
-PLOTTER.draw_polygons(polygons)
-PLOTTER.draw_faces(
-    text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
-    facecolor=facecolor)
-PLOTTER.draw_edges()
-PLOTTER.show()
+# PLOTTER = MeshPlotter(mesh, figsize=(10, 7))
+# PLOTTER.draw_polygons(polygons)
+# PLOTTER.draw_faces(
+#     text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
+#     facecolor=facecolor)
+# PLOTTER.draw_edges()
+# PLOTTER.show()
 
 # ==============================================================================
 # Export
@@ -309,16 +309,16 @@ PLOTTER.show()
 # Visualize
 # ==============================================================================
 
-# ARTIST = ShellArtist(None)
+ARTIST = ShellArtist(None)
 
-# for mesh in SOUTH_unrolled:
-#     points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-#     polygon = offset_polygon(points, SEEM)
-#     polygons = [{'points': polygon + polygon[:1]}]
+for mesh in SOUTH_unrolled:
+    points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
+    polygon = offset_polygon(points, SEEM)
+    polygons = [{'points': polygon + polygon[:1]}]
 
-#     ARTIST.mesh = mesh
-#     ARTIST.layer = "Unrolled::{}::{}".format(SIDE, mesh.attributes['name'])
-#     ARTIST.clear_layer()
-#     ARTIST.draw_faces()
-#     ARTIST.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in mesh.faces(True)})
-#     ARTIST.draw_polygons(polygons)
+    ARTIST.mesh = mesh
+    ARTIST.layer = "Unrolled::{}::{}".format(SIDE, mesh.attributes['name'])
+    ARTIST.clear_layer()
+    ARTIST.draw_faces()
+    ARTIST.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in mesh.faces(True)})
+    ARTIST.draw_polygons(polygons)

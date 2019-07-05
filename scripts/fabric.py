@@ -18,9 +18,13 @@ from compas.geometry import scale_vector
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
-FILE_I = os.path.join(DATA, 'fabric.json')
+FILE_I1 = os.path.join(DATA, 'data.json')
+FILE_I2 = os.path.join(DATA, 'fabric.json')
 
-FABRIC = Mesh.from_json(FILE_I)
+SHELL = Mesh.from_json(FILE_I1)
+FABRIC = Mesh.from_json(FILE_I2)
+
+SHELL.name = 'Shell'
 FABRIC.name = 'Fabric'
 
 mesh_flip_cycles(FABRIC)
@@ -105,32 +109,30 @@ STRIPS = SOUTH + SW + WEST + NW + NORTH + RING
 ARTIST = MeshArtist(FABRIC, layer="Fabric")
 ARTIST.clear_layer()
 
+# INTRADOS
+
 ARTIST.mesh = IDOS
 
 ARTIST.layer = "Fabric::Intrados"
 
-for i in range(0, len(STRIPS), 2):
-    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
-    rs.ObjectColor(guid, (255, 0, 0))
-
-for i in range(1, len(STRIPS), 2):
-    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
-    rs.ObjectColor(guid, (255, 128, 128))
+for i, strip in enumerate(STRIPS):
+    guid = ARTIST.draw_faces(keys=strip, join_faces=True)
+    color = (255, 128, 128) if i % 2 else (255, 0, 0)
+    rs.ObjectColor(guid, color)
 
 ARTIST.layer = "Fabric::Normals"
 ARTIST.draw_facenormals(color=(255, 0, 0), scale=0.05)
+
+# EXTRADOS
 
 ARTIST.mesh = EDOS
 
 ARTIST.layer = "Fabric::Extrados"
 
-for i in range(0, len(STRIPS), 2):
-    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
-    rs.ObjectColor(guid, (0, 0, 255))
-
-for i in range(1, len(strips), 2):
-    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
-    rs.ObjectColor(guid, (128, 128, 255))
+for i, strip in enumerate(STRIPS):
+    guid = ARTIST.draw_faces(keys=strip, join_faces=True)
+    color = (128, 128, 255) if i % 2 else (0, 0, 255)
+    rs.ObjectColor(guid, color)
 
 ARTIST.layer = "Fabric::Normals"
 ARTIST.draw_facenormals(color=(0, 0, 255), scale=0.05)
