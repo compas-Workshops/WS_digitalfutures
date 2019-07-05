@@ -26,50 +26,53 @@ from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellHelper
 from compas_fofin.rhino import ShellArtist
 
+# ==============================================================================
+# Helpers
+# ==============================================================================
 
 def split_ring(faces):
     fkey = faces[-1]
-    for u, v in fabric.face_halfedges(fkey):
-        if fabric.halfedge[v][u] == faces[0]:
+    for u, v in FABRIC.face_halfedges(fkey):
+        if FABRIC.halfedge[v][u] == faces[0]:
             break
         else:
             u = None
             v = None
     if not u and not v:
         return
-    a = fabric.vertex_coordinates(u)
-    b = fabric.vertex_coordinates(v)
-    uu = fabric.add_vertex(x=a[0], y=a[1], z=a[2])
-    vv = fabric.add_vertex(x=b[0], y=b[1], z=b[2])
-    vertices = fabric.face_vertices(fkey)
+    a = FABRIC.vertex_coordinates(u)
+    b = FABRIC.vertex_coordinates(v)
+    uu = FABRIC.add_vertex(x=a[0], y=a[1], z=a[2])
+    vv = FABRIC.add_vertex(x=b[0], y=b[1], z=b[2])
+    vertices = FABRIC.face_vertices(fkey)
     i = vertices.index(u)
     j = vertices.index(v)
     vertices[i] = uu
     vertices[j] = vv
     for u, v in pairwise(vertices + vertices[:1]):
-        fabric.halfedge[u][v] = fkey
+        FABRIC.halfedge[u][v] = fkey
 
 
 def triangulate_strips(zone):
     meshes = []
     for faces in zone:
         mesh = Mesh()
-        mesh.update_default_vertex_attributes(fabric.default_vertex_attributes)
-        mesh.update_default_edge_attributes(fabric.default_edge_attributes)
-        mesh.update_default_face_attributes(fabric.default_face_attributes)
+        mesh.update_default_vertex_attributes(FABRIC.default_vertex_attributes)
+        mesh.update_default_edge_attributes(FABRIC.default_edge_attributes)
+        mesh.update_default_face_attributes(FABRIC.default_face_attributes)
 
         for fkey in faces:
-            keys = fabric.face_vertices(fkey)
+            keys = FABRIC.face_vertices(fkey)
             for key in keys:
                 if key not in mesh.vertex:
-                    attr = fabric.vertex[key].copy()
+                    attr = FABRIC.vertex[key].copy()
                     mesh.add_vertex(key=key, attr_dict=attr)
-            attr = fabric.facedata[fkey].copy()
+            attr = FABRIC.facedata[fkey].copy()
             mesh.add_face(keys, fkey=fkey, attr_dict=attr)
 
         for u, v, attr in mesh.edges(True):
             for name in attr:
-                value = fabric.get_edge_attribute((u, v), name)
+                value = FABRIC.get_edge_attribute((u, v), name)
                 attr[name] = value
 
         trimesh = mesh.copy()
@@ -79,7 +82,8 @@ def triangulate_strips(zone):
     return meshes
 
 
-def unroll(quadmesh, trimesh, edge):
+def unroll(meshes, edge):
+    quadmesh, trimesh = meshes
     flatmesh = trimesh.copy()
 
     u, v = edge
@@ -149,51 +153,59 @@ def unroll(quadmesh, trimesh, edge):
 
     return quadmesh
 
-
 # ==============================================================================
 # Initialise
 # ==============================================================================
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
-FILE_I = os.path.join(DATA, 'data-extended-strips-split.json')
-FILE_O = os.path.join(DATA, 'data-extended-strips-split.json')
+FILE_I = os.path.join(DATA, 'fabric.json')
 
-thickness = -0.02
+BASE = Shell.from_json(FILE_I)
+mesh_flip_cycles(BASE)
 
-dual = Shell.from_json(FILE_I)
-fabric = dual.copy()
-mesh_flip_cycles(fabric)
+SIDE = 'edos'
+SEEM = -0.020
 
-for key in dual.vertices():
-    normal = dual.vertex_normal(key)
-    xyz = dual.vertex_coordinates(key)
-    offset = scale_vector(normal, thickness)
+COLOR = (255, 0, 0) if SIDE == 'idos' else (0, 0, 255)
+THICKNESS = -0.020 if SIDE == 'idos' else +0.020
+
+# ==============================================================================
+# Fabric layer from extended base
+# ==============================================================================
+
+FABRIC = BASE.copy()
+mesh_flip_cycles(FABRIC)
+
+for key in BASE.vertices():
+    normal = BASE.vertex_normal(key)
+    xyz = BASE.vertex_coordinates(key)
+    offset = scale_vector(normal, THICKNESS)
     point = add_vectors(xyz, offset)
-    fabric.set_vertex_attributes(key, 'xyz', point)
+    FABRIC.set_vertex_attributes(key, 'xyz', point)
 
 # ==============================================================================
 # Triangulate
 # ==============================================================================
 
 RING = [
-    list(fabric.faces_where({'panel': 'RING', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '04'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '05'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '06'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '07'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '08'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '09'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '10'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '04'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '05'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '06'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '07'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '08'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '09'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '10'})),
 ]
 
 RING_sorted = []
 
 for faces in RING:
-    strip = sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count'))
+    strip = sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count'))
     RING_sorted.append(strip)
 
 split_ring(RING_sorted[2])
@@ -211,17 +223,17 @@ RING_triangulated = triangulate_strips(RING_sorted)
 # ==============================================================================
 
 RING_unrolled = [
-    unroll(RING_triangulated[0][0], RING_triangulated[0][1], (359, 411)),
-    unroll(RING_triangulated[1][0], RING_triangulated[1][1], (359, 360)),
-    unroll(RING_triangulated[2][0], RING_triangulated[2][1], (445, 446)),
-    unroll(RING_triangulated[3][0], RING_triangulated[3][1], (444, 445)),
-    unroll(RING_triangulated[4][0], RING_triangulated[4][1], (443, 444)),
-    unroll(RING_triangulated[5][0], RING_triangulated[5][1], (442, 443)),
-    unroll(RING_triangulated[6][0], RING_triangulated[6][1], (441, 442)),
-    unroll(RING_triangulated[7][0], RING_triangulated[7][1], (440, 441)),
-    unroll(RING_triangulated[8][0], RING_triangulated[8][1], (439, 440)),
-    unroll(RING_triangulated[9][0], RING_triangulated[9][1], (356, 358)),
-    unroll(RING_triangulated[10][0], RING_triangulated[10][1], (356, 394)),
+    unroll(RING_triangulated[0], (359, 411)),
+    unroll(RING_triangulated[1], (359, 360)),
+    unroll(RING_triangulated[2], (445, 446)),
+    unroll(RING_triangulated[3], (444, 445)),
+    unroll(RING_triangulated[4], (443, 444)),
+    unroll(RING_triangulated[5], (442, 443)),
+    unroll(RING_triangulated[6], (441, 442)),
+    unroll(RING_triangulated[7], (440, 441)),
+    unroll(RING_triangulated[8], (439, 440)),
+    unroll(RING_triangulated[9], (356, 358)),
+    unroll(RING_triangulated[10], (356, 394)),
 ]
 
 for mesh in RING_unrolled:
@@ -234,37 +246,44 @@ for mesh in RING_unrolled:
 # Visualize
 # ==============================================================================
 
-# plotter = MeshPlotter(None, figsize=(10, 7))
+mesh = RING_unrolled[3]
 
-# mesh = RING_unrolled[3]
+points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
+polygons = [{'points': offset_polygon(points, SEEM)}]
 
-# points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-# polygon = offset_polygon(points, -0.020)
+fkey = list(mesh.faces_where({'count': 0}))[0]
+facecolor = {fkey: COLOR}
 
-# polygons = []
-# polygons.append({
-#     'points': polygon
-# })
-
-# fkey = list(mesh.faces_where({'count': 0}))[0]
-# normal = mesh.face_normal(fkey)
-
-# facecolor = {}
-# facecolor[fkey] = (255, 0, 0) if normal[2] > 0 else (0, 0, 255) 
-
-# plotter.mesh = mesh
-# plotter.draw_polygons(polygons)
-# plotter.draw_faces(
-#     text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
-#     facecolor=facecolor)
-# plotter.draw_edges()
-
-# plotter.show()
+PLOTTER = MeshPlotter(mesh, figsize=(10, 7))
+PLOTTER.draw_polygons(polygons)
+PLOTTER.draw_faces(
+    text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
+    facecolor=facecolor)
+PLOTTER.draw_edges()
+PLOTTER.show()
 
 # ==============================================================================
 # Export
 # ==============================================================================
 
-for mesh in RING_unrolled:
-    path = os.path.join(DATA, 'fabric', 'unrolled', 'idos', "{}.json".format(mesh.attributes['name']))
-    mesh.to_json(path)
+# for mesh in RING_unrolled:
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
+#     mesh.to_json(path)
+
+# ==============================================================================
+# Visualize 
+# ==============================================================================
+
+# ARTIST = ShellArtist(None)
+
+# for mesh in RING_unrolled:
+#     points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
+#     polygon = offset_polygon(points, SEEM)
+#     polygons = [{'points': polygon + polygon[:1]}]
+
+#     ARTIST.mesh = mesh
+#     ARTIST.layer = "Unrolled::{}::{}".format(SIDE, mesh.attributes['name'])
+#     ARTIST.clear_layer()
+#     ARTIST.draw_faces()
+#     ARTIST.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in mesh.faces(True)})
+#     ARTIST.draw_polygons(polygons)

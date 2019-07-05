@@ -34,20 +34,20 @@ def triangulate_strips(zone):
     meshes = []
     for faces in zone:
         mesh = Mesh()
-        mesh.update_default_vertex_attributes(fabric.default_vertex_attributes)
-        mesh.update_default_edge_attributes(fabric.default_edge_attributes)
-        mesh.update_default_face_attributes(fabric.default_face_attributes)
+        mesh.update_default_vertex_attributes(FABRIC.default_vertex_attributes)
+        mesh.update_default_edge_attributes(FABRIC.default_edge_attributes)
+        mesh.update_default_face_attributes(FABRIC.default_face_attributes)
         for fkey in faces:
-            keys = fabric.face_vertices(fkey)
+            keys = FABRIC.face_vertices(fkey)
             for key in keys:
                 if key not in mesh.vertex:
-                    attr = fabric.vertex[key].copy()
+                    attr = FABRIC.vertex[key].copy()
                     mesh.add_vertex(key=key, attr_dict=attr)
-            attr = fabric.facedata[fkey].copy()
+            attr = FABRIC.facedata[fkey].copy()
             mesh.add_face(keys, fkey=fkey, attr_dict=attr)
         for u, v, attr in mesh.edges(True):
             for name in attr:
-                value = fabric.get_edge_attribute((u, v), name)
+                value = FABRIC.get_edge_attribute((u, v), name)
                 attr[name] = value
         trimesh = mesh.copy()
         mesh_quads_to_triangles(trimesh, check_angles=True)
@@ -143,70 +143,71 @@ HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, '..', 'data')
 FILE_I = os.path.join(DATA, 'fabric.json')
 
-base = Shell.from_json(FILE_I)
-mesh_flip_cycles(base)
+BASE = Shell.from_json(FILE_I)
+mesh_flip_cycles(BASE)
+
+SIDE = 'edos'
+SEEM = -0.020
+
+COLOR = (255, 0, 0) if SIDE == 'idos' else (0, 0, 255)
+THICKNESS = -0.020 if SIDE == 'idos' else +0.020
 
 # ==============================================================================
 # Fabric layer from extended dual
 # ==============================================================================
 
-side = 'idos'
-color = (255, 0, 0)
-seem = -0.020
-thickness = -0.020
+FABRIC = BASE.copy()
+mesh_flip_cycles(FABRIC)
 
-fabric = base.copy()
-mesh_flip_cycles(fabric)
-
-for key in base.vertices():
-    normal = base.vertex_normal(key)
-    xyz = base.vertex_coordinates(key)
-    offset = scale_vector(normal, thickness)
+for key in BASE.vertices():
+    normal = BASE.vertex_normal(key)
+    xyz = BASE.vertex_coordinates(key)
+    offset = scale_vector(normal, THICKNESS)
     point = add_vectors(xyz, offset)
-    fabric.set_vertex_attributes(key, 'xyz', point)
+    FABRIC.set_vertex_attributes(key, 'xyz', point)
 
 # ==============================================================================
 # Identify strips
 # ==============================================================================
 
 SOUTH = [
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '04'}))]
 
 WEST = [
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '04'}))]
 
 NORTH = [
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '04'}))]
 
 SW = [
-    list(fabric.faces_where({'panel': 'SW', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'WS', 'strip': '00'}))]
+    list(FABRIC.faces_where({'panel': 'SW', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'WS', 'strip': '00'}))]
 
 NW = [
-    list(fabric.faces_where({'panel': 'WN', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'NW', 'strip': '00'}))]
+    list(FABRIC.faces_where({'panel': 'WN', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'NW', 'strip': '00'}))]
 
 # ==============================================================================
 # Sort faces
 # ==============================================================================
 
-SOUTH_sorted = [sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count')) for faces in SOUTH]
-WEST_sorted = [sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count')) for faces in WEST]
-NORTH_sorted = [sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count')) for faces in NORTH]
-SW_sorted = [sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count')) for faces in SW]
-NW_sorted = [sorted(faces, key=lambda fkey: fabric.get_face_attribute(fkey, 'count')) for faces in NW]
+SOUTH_sorted = [sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count')) for faces in SOUTH]
+WEST_sorted = [sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count')) for faces in WEST]
+NORTH_sorted = [sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count')) for faces in NORTH]
+SW_sorted = [sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count')) for faces in SW]
+NW_sorted = [sorted(faces, key=lambda fkey: FABRIC.get_face_attribute(fkey, 'count')) for faces in NW]
 
 # ==============================================================================
 # Triangulate
@@ -267,57 +268,57 @@ for mesh in NW_unrolled:
 mesh = WEST_unrolled[0]
 
 points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-polygons = [{'points': offset_polygon(points, seem)}]
+polygons = [{'points': offset_polygon(points, SEEM)}]
 
 fkey = list(mesh.faces_where({'count': 0}))[0]
-facecolor = {fkey: color}
+facecolor = {fkey: COLOR}
 
-plotter = MeshPlotter(mesh, figsize=(10, 7))
-plotter.draw_polygons(polygons)
-plotter.draw_faces(
+PLOTTER = MeshPlotter(mesh, figsize=(10, 7))
+PLOTTER.draw_polygons(polygons)
+PLOTTER.draw_faces(
     text={fkey: "{}".format(str(attr['count']).zfill(2)) for fkey, attr in mesh.faces(True)},
     facecolor=facecolor)
-plotter.draw_edges()
-plotter.show()
+PLOTTER.draw_edges()
+PLOTTER.show()
 
 # ==============================================================================
 # Export
 # ==============================================================================
 
 # for mesh in SOUTH_unrolled:
-#     path = os.path.join(DATA, 'fabric', 'unrolled', side, "{}.json".format(mesh.attributes['name']))
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
 #     mesh.to_json(path)
 
 # for mesh in WEST_unrolled:
-#     path = os.path.join(DATA, 'fabric', 'unrolled', side, "{}.json".format(mesh.attributes['name']))
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
 #     mesh.to_json(path)
 
 # for mesh in NORTH_unrolled:
-#     path = os.path.join(DATA, 'fabric', 'unrolled', side, "{}.json".format(mesh.attributes['name']))
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
 #     mesh.to_json(path)
 
 # for mesh in SW_unrolled:
-#     path = os.path.join(DATA, 'fabric', 'unrolled', side, "{}.json".format(mesh.attributes['name']))
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
 #     mesh.to_json(path)
 
 # for mesh in NW_unrolled:
-#     path = os.path.join(DATA, 'fabric', 'unrolled', side, "{}.json".format(mesh.attributes['name']))
+#     path = os.path.join(DATA, 'FABRIC', 'unrolled', SIDE, "{}.json".format(mesh.attributes['name']))
 #     mesh.to_json(path)
 
 # ==============================================================================
 # Visualize
 # ==============================================================================
 
-# artist = ShellArtist(None)
+# ARTIST = ShellArtist(None)
 
 # for mesh in SOUTH_unrolled:
 #     points = [mesh.vertex_coordinates(key) for key in mesh.vertices_on_boundary(ordered=True)]
-#     polygon = offset_polygon(points, seem)
+#     polygon = offset_polygon(points, SEEM)
 #     polygons = [{'points': polygon + polygon[:1]}]
 
-#     artist.mesh = mesh
-#     artist.layer = "Unrolled::{}::{}".format(side, mesh.attributes['name'])
-#     artist.clear_layer()
-#     artist.draw_faces()
-#     artist.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in mesh.faces(True)})
-#     artist.draw_polygons(polygons)
+#     ARTIST.mesh = mesh
+#     ARTIST.layer = "Unrolled::{}::{}".format(SIDE, mesh.attributes['name'])
+#     ARTIST.clear_layer()
+#     ARTIST.draw_faces()
+#     ARTIST.draw_facelabels(text={key: "{}".format(attr['count']) for key, attr in mesh.faces(True)})
+#     ARTIST.draw_polygons(polygons)

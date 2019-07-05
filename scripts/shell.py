@@ -20,82 +20,82 @@ HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'data.json')
 
-shell = Shell.from_json(FILE_I)
+SHELL = Shell.from_json(FILE_I)
+
+THICKNESS = 0.04
 
 # ==============================================================================
 # Compute offset surfaces
 # ==============================================================================
 
-thickness = 0.04
+EDOS = SHELL.copy()
+IDOS = SHELL.copy()
 
-edos = shell.copy()
-idos = shell.copy()
+EDOS.name = 'Extrados'
+IDOS.name = 'Intrados'
 
-edos.name = 'Extrados'
-idos.name = 'Intrados'
+for key in SHELL.vertices():
+    normal = SHELL.vertex_normal(key)
+    xyz = SHELL.vertex_coordinates(key)
 
-for key in shell.vertices():
-    normal = shell.vertex_normal(key)
-    xyz = shell.vertex_coordinates(key)
+    up = scale_vector(normal, 0.5 * THICKNESS)
+    down = scale_vector(normal, -0.5 * THICKNESS)
 
-    up = scale_vector(normal, 0.5 * thickness)
-    down = scale_vector(normal, -0.5 * thickness)
+    EDOS.set_vertex_attributes(key, 'xyz', add_vectors(xyz, up))
+    IDOS.set_vertex_attributes(key, 'xyz', add_vectors(xyz, down))
 
-    edos.set_vertex_attributes(key, 'xyz', add_vectors(xyz, up))
-    idos.set_vertex_attributes(key, 'xyz', add_vectors(xyz, down))
-
-mesh_flip_cycles(idos)
+mesh_flip_cycles(IDOS)
 
 # ==============================================================================
-# Construct volume
+# Construct VOLUME
 # ==============================================================================
 
-volume = idos.copy()
-volume.name = 'Volume'
+VOLUME = IDOS.copy()
+VOLUME.name = 'Volume'
 
-max_int_key = volume._max_int_key + 1
-max_int_fkey = volume._max_int_fkey + 1
+max_int_key = VOLUME._max_int_key + 1
+max_int_fkey = VOLUME._max_int_fkey + 1
 
-for key, attr in edos.vertices(True):
-    volume.add_vertex(key=key + max_int_key, **attr)
+for key, attr in EDOS.vertices(True):
+    VOLUME.add_vertex(key=key + max_int_key, **attr)
 
-for fkey in edos.faces():
-    vertices = edos.face_vertices(fkey)
+for fkey in EDOS.faces():
+    vertices = EDOS.face_vertices(fkey)
     vertices = [key + max_int_key for key in vertices]
-    volume.add_face(vertices)
+    VOLUME.add_face(vertices)
 
-boundary = edos.vertices_on_boundary(ordered=True)
+boundary = EDOS.vertices_on_boundary(ordered=True)
 boundary.append(boundary[0])
 
 for a, b in pairwise(boundary):
-    volume.add_face([b, a, a + max_int_key, b + max_int_key])
+    VOLUME.add_face([b, a, a + max_int_key, b + max_int_key])
 
 # ==============================================================================
 # Visualise
 # ==============================================================================
 
-artist = ShellArtist(shell, layer="Shell")
-artist.clear_layer()
+ARTIST = ShellArtist(SHELL, layer="Shell")
+ARTIST.clear_layer()
 
-# artist.layer = "Shell::FoFin"
-# artist.draw_vertices(color={key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})})
-# artist.draw_edges()
-# artist.draw_faces()
-# artist.draw_reactions(scale=0.5)
-# artist.draw_forces(scale=0.025)
+# ARTIST.layer = "Shell::FoFin"
+# ARTIST.draw_vertices(color={key: (255, 0, 0) for key in SHELL.vertices_where({'is_anchor': True})})
+# ARTIST.draw_edges()
+# ARTIST.draw_faces()
+# ARTIST.draw_reactions(scale=0.5)
+# ARTIST.draw_forces(scale=0.025)
 
-# artist.layer = "Shell::Intrados"
-# artist.mesh = idos
-# artist.draw_mesh(color=(255, 0, 0))
-# artist.draw_facenormals(color=(255, 0, 0), scale=0.05)
+# ARTIST.layer = "Shell::Intrados"
+# ARTIST.mesh = IDOS
+# ARTIST.draw_mesh(color=(255, 0, 0))
+# ARTIST.draw_facenormals(color=(255, 0, 0), scale=0.05)
 
-# artist.layer = "Shell::Extrados"
-# artist.mesh = edos
-# artist.draw_mesh(color=(0, 0, 255))
-# artist.draw_facenormals(color=(0, 0, 255), scale=0.05)
+# ARTIST.layer = "Shell::Extrados"
+# ARTIST.mesh = EDOS
+# ARTIST.draw_mesh(color=(0, 0, 255))
+# ARTIST.draw_facenormals(color=(0, 0, 255), scale=0.05)
 
-artist.layer = "Shell::Volume"
-artist.mesh = volume
-artist.draw_mesh()
+ARTIST.layer = "Shell::Volume"
+ARTIST.mesh = VOLUME
+ARTIST.draw_mesh()
 
-artist.redraw()
+ARTIST.redraw()

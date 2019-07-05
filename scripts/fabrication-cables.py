@@ -6,23 +6,23 @@ import os
 
 from openpyxl import Workbook
 
-from compas.utilities import pairwise
 from compas.geometry import distance_point_point
 from compas.geometry import add_vectors
 from compas.geometry import intersection_line_plane
-from compas.geometry import Frame
 from compas.geometry import cross_vectors
 from compas.geometry import subtract_vectors
 from compas.geometry import normalize_vector
 from compas.geometry import scale_vector
-from compas.geometry import offset_polygon
 
 from compas_fofin.datastructures import Shell
 
+# ==============================================================================
+# Helpers
+# ==============================================================================
 
 def append_to_sheet(sheet, beamA, beamB):
     for u in beamA:
-        nbrs = shell.vertex_neighbors(u)
+        nbrs = SHELL.vertex_neighbors(u)
         v = None
         for nbr in nbrs:
             if nbr in boundary:
@@ -31,11 +31,11 @@ def append_to_sheet(sheet, beamA, beamB):
             break
         if v is None:
             continue
-        edges = shell.get_continuous_edges((u, v), directed=False)
+        edges = SHELL.get_continuous_edges((u, v), directed=False)
         last = edges[-1][1]
         if last in beamB:
             values = LENGTHS[u][:]
-            values += [shell.edge_length(u, v) for u, v in edges]
+            values += [SHELL.edge_length(u, v) for u, v in edges]
             values += LENGTHS[last][::-1]
             accumulated = []
             value = 0
@@ -45,8 +45,8 @@ def append_to_sheet(sheet, beamA, beamB):
             sheet.append([u] + [round(1e3 * v, 1) for v in accumulated])
         else:
             values = LENGTHS[u][:]
-            values += [shell.edge_length(u, v) for u, v in edges[:-1]]
-            values += [shell.edge_length(* edges[-1]) - 0.100]
+            values += [SHELL.edge_length(u, v) for u, v in edges[:-1]]
+            values += [SHELL.edge_length(* edges[-1]) - 0.100]
             values += [0.100, 0.100]
             accumulated = []
             value = 0
@@ -55,6 +55,15 @@ def append_to_sheet(sheet, beamA, beamB):
                 accumulated.append(value)
             sheet.append([u] + [round(1e3 * v, 1) for v in accumulated])
 
+
+def beam_plane(beam):
+    p1 = SHELL.vertex_coordinates(beam[1])
+    p0 = SHELL.vertex_coordinates(beam[0])
+    xaxis = subtract_vectors(p1, p0)
+    yaxis = cross_vectors(ZAXIS, xaxis)
+    normal = normalize_vector(yaxis)
+    origin = add_vectors(p0, scale_vector(normal, OFFSET))
+    return origin, normal
 
 # ==============================================================================
 # Initialise
@@ -65,68 +74,46 @@ DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'data.json')
 FILE_O = os.path.join(DATA, 'data-fabrication-cables.xlsx')
 
-shell = Shell.from_json(FILE_I)
+SHELL = Shell.from_json(FILE_I)
 
 # ==============================================================================
 # Beam vertices
 # ==============================================================================
 
-beams = [
+BEAMS = [
     [268, 258, 115, 106, 114, 269, 281, 145],
     [57, 4, 259, 278, 54],
     [116, 261, 282, 60, 79, 52, 260, 5],
     [146, 270, 117, 107],
-    [8, 144, 272, 175],
-]
+    [8, 144, 272, 175]]
 
-offset = 0.5
-zaxis = [0, 0, 1.0]
+OFFSET = 0.5
+ZAXIS = [0, 0, 1.0]
 
-p1 = shell.vertex_coordinates(beams[0][1])
-p0 = shell.vertex_coordinates(beams[0][0])
-xaxis = subtract_vectors(p1, p0)
-yaxis = cross_vectors(zaxis, xaxis)
-normal = normalize_vector(yaxis)
-origin = add_vectors(p0, scale_vector(normal, offset))
-NORTH = (origin, normal)
+NORTH = beam_plane(BEAMS[0])
+WEST = beam_plane(BEAMS[1])
+SOUTH = beam_plane(BEAMS[2])
 
-p1 = shell.vertex_coordinates(beams[1][1])
-p0 = shell.vertex_coordinates(beams[1][0])
-xaxis = subtract_vectors(p1, p0)
-yaxis = cross_vectors(zaxis, xaxis)
-normal = normalize_vector(yaxis)
-origin = add_vectors(p0, scale_vector(normal, offset))
-WEST = (origin, normal)
-
-p1 = shell.vertex_coordinates(beams[2][1])
-p0 = shell.vertex_coordinates(beams[2][0])
-xaxis = subtract_vectors(p1, p0)
-yaxis = cross_vectors(zaxis, xaxis)
-normal = normalize_vector(yaxis)
-origin = add_vectors(p0, scale_vector(normal, offset))
-SOUTH = (origin, normal)
-
-planes = [
+PLANES = [
     NORTH,
     WEST,
     SOUTH,
     SOUTH,
-    NORTH
-]
+    NORTH]
 
 # ==============================================================================
-# Horizontal beams
+# Connector cables
 # ==============================================================================
 
 LENGTHS = {}
 
-for i, keys in enumerate(beams):
-    plane = planes[i]
+for i, keys in enumerate(BEAMS):
+    plane = PLANES[i]
 
     points = []
     for key in keys:
-        a = shell.vertex_coordinates(key)
-        r = shell.get_vertex_attributes(key, ['rx', 'ry', 'rz'])
+        a = SHELL.vertex_coordinates(key)
+        r = SHELL.get_vertex_attributes(key, ['rx', 'ry', 'rz'])
         b = add_vectors(a, r)
 
         line = a, b
@@ -144,8 +131,7 @@ for i, keys in enumerate(beams):
         LENGTHS[key] = [
             0.1,
             distance_point_point(x2, x3),
-            distance_point_point(x3, x4),
-        ]
+            distance_point_point(x3, x4)]
 
 # ==============================================================================
 # Export
@@ -153,26 +139,29 @@ for i, keys in enumerate(beams):
 
 wb = Workbook()
 
-boundary = set(shell.vertices_on_boundary())
+boundary = set(SHELL.vertices_on_boundary())
 
-beamS = [116, 261, 282, 60, 79, 52, 260, 5]
+BEAMS = [116, 261, 282, 60, 79, 52, 260, 5]
 beamW = [57, 4, 259, 278, 54]
 beamN = [268, 258, 115, 106, 114, 269, 281, 145]
-beamSE = [146, 270, 117, 107]
+BEAMSE = [146, 270, 117, 107]
 beamNE = [8, 144, 272, 175]
 
 ws_S = wb.active
 ws_S.title = "SOUTH"
+
 ws_W = wb.create_sheet()
 ws_W.title = "WEST"
+
 ws_N = wb.create_sheet()
 ws_N.title = "NORTH"
+
 ws_E = wb.create_sheet()
 ws_E.title = "EAST"
 
-append_to_sheet(ws_S, beamS, beamN)
+append_to_sheet(ws_S, BEAMS, beamN)
 append_to_sheet(ws_W, beamW, [])
-append_to_sheet(ws_N, beamN, beamS)
-append_to_sheet(ws_E, beamSE, beamNE)
+append_to_sheet(ws_N, beamN, BEAMS)
+append_to_sheet(ws_E, BEAMSE, beamNE)
 
 wb.save(FILE_O)

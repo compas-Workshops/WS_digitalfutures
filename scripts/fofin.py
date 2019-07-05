@@ -4,11 +4,6 @@ from __future__ import division
 
 import os
 
-from compas.geometry import add_vectors
-from compas.geometry import scale_vector
-from compas.utilities import pairwise
-from compas.datastructures import mesh_flip_cycles
-
 from compas_fofin.datastructures import Shell
 from compas_fofin.rhino import ShellArtist
 
@@ -20,22 +15,22 @@ HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'data.json')
 
-shell = Shell.from_json(FILE_I)
+SHELL = Shell.from_json(FILE_I)
 
 # ==============================================================================
 # Visualise
 # ==============================================================================
 
-artist = ShellArtist(shell, layer="FoFin")
-artist.clear_layer()
+ARTIST = ShellArtist(SHELL, layer="FoFin")
+ARTIST.clear_layer()
 
-artist.layer = "FoFin::Data"
-artist.draw_vertices(color={key: (255, 0, 0) for key in shell.vertices_where({'is_anchor': True})})
-artist.draw_edges()
-artist.draw_faces()
+ARTIST.layer = "FoFin::Data"
+ARTIST.draw_vertices(color={key: (255, 0, 0) for key in SHELL.vertices_where({'is_anchor': True})})
+ARTIST.draw_edges()
+ARTIST.draw_faces()
 
-artist.layer= "FoFin::Forces"
-artist.draw_forces(scale=0.025)
+ARTIST.layer= "FoFin::Forces"
+ARTIST.draw_forces(scale=0.025)
 
-artist.layer= "FoFin::Reactions"
-artist.draw_reactions(scale=0.5)
+ARTIST.layer= "FoFin::Reactions"
+ARTIST.draw_reactions(scale=0.5)

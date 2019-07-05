@@ -16,35 +16,35 @@ from compas_fofin.datastructures import Shell
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'data.json')
-FILE_O = os.path.join(DATA, 'data-fabrication-test.xlsx')
+FILE_O = os.path.join(DATA, 'data-fabrication-rings.xlsx')
 
-shell = Shell.from_json(FILE_I)
+SHELL = Shell.from_json(FILE_I)
 
 # ==============================================================================
 # Select
 # ==============================================================================
 
-cables = []
+CABLES = []
 
 for edge in [(136, 203), (45, 200), (103, 105), (156, 255)]:
     cable = []
-    edges = shell.get_continuous_edges(edge)
+    edges = SHELL.get_continuous_edges(edge)
     for edge in edges:
         if edge not in cable:
             cable.append(edge)
-    cables.append(cable)
+    CABLES.append(cable)
 
 # ==============================================================================
 # Lengths
 # ==============================================================================
 
-lengths = []
+LENGTHS = []
 
-for cable in cables:
+for cable in CABLES:
     data = []
     L = 0
     u, v = cable[0]
-    l = shell.edge_length(u, v)
+    l = SHELL.edge_length(u, v)
     l = 1e3 * l
     L += round(l, 1)
 
@@ -53,25 +53,25 @@ for cable in cables:
     data.append(L - 50)
 
     for u, v in cable[1:]:
-        l = shell.edge_length(u, v)
+        l = SHELL.edge_length(u, v)
         l = 1e3 * l
         L += round(l, 1)
         data.append(L)
 
     L += 50
     data.append(L)
-    lengths.append(data)
+    LENGTHS.append(data)
 
 # ==============================================================================
 # Export
 # ==============================================================================
 
-wb = Workbook()
+WB = Workbook()
 
-ws = wb.active
-ws.title = "CABLES"
+WS = WB.active
+WS.title = "CABLES"
 
-for data in lengths:
-    ws.append(data)
+for data in LENGTHS:
+    WS.append(data)
 
-wb.save(FILE_O)
+WB.save(FILE_O)

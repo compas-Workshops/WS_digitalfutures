@@ -20,115 +20,117 @@ HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, '..', 'data'))
 FILE_I = os.path.join(DATA, 'fabric.json')
 
-fabric = Mesh.from_json(FILE_I)
-fabric.name = 'Fabric'
+FABRIC = Mesh.from_json(FILE_I)
+FABRIC.name = 'Fabric'
 
-mesh_flip_cycles(fabric)
+mesh_flip_cycles(FABRIC)
+
+THICKNESS = 0.04
 
 # ==============================================================================
 # Offsets
 # ==============================================================================
 
-thickness = 0.04
+EDOS = FABRIC.copy()
+IDOS = FABRIC.copy()
 
-edos = fabric.copy()
-idos = fabric.copy()
+EDOS.name = 'Extrados'
+IDOS.name = 'Intrados'
 
-edos.name = 'Extrados'
-idos.name = 'Intrados'
+for key in FABRIC.vertices():
+    normal = FABRIC.vertex_normal(key)
+    xyz = FABRIC.vertex_coordinates(key)
 
-for key in fabric.vertices():
-    normal = fabric.vertex_normal(key)
-    xyz = fabric.vertex_coordinates(key)
+    xyz_e = add_vectors(xyz, scale_vector(normal, +0.5 * THICKNESS))
+    xyz_i = add_vectors(xyz, scale_vector(normal, -0.5 * THICKNESS))
 
-    xyz_e = add_vectors(xyz, scale_vector(normal, +0.5 * thickness))
-    xyz_i = add_vectors(xyz, scale_vector(normal, -0.5 * thickness))
+    EDOS.set_vertex_attributes(key, 'xyz', xyz_e)
+    IDOS.set_vertex_attributes(key, 'xyz', xyz_i)
 
-    edos.set_vertex_attributes(key, 'xyz', xyz_e)
-    idos.set_vertex_attributes(key, 'xyz', xyz_i)
-
-mesh_flip_cycles(idos)
+mesh_flip_cycles(IDOS)
 
 # ==============================================================================
 # Identify strips
 # ==============================================================================
 
 SOUTH = [
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'SOUTH', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'SOUTH', 'strip': '04'}))]
 
 WEST = [
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'WEST', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'WEST', 'strip': '04'}))]
 
 NORTH = [
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'NORTH', 'strip': '04'}))]
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'NORTH', 'strip': '04'}))]
 
 SW = [
-    list(fabric.faces_where({'panel': 'SW', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'WS', 'strip': '00'}))]
+    list(FABRIC.faces_where({'panel': 'SW', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'WS', 'strip': '00'}))]
 
 NW = [
-    list(fabric.faces_where({'panel': 'WN', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'NW', 'strip': '00'}))]
+    list(FABRIC.faces_where({'panel': 'WN', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'NW', 'strip': '00'}))]
 
 RING = [
-    list(fabric.faces_where({'panel': 'RING', 'strip': '00'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '01'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '02'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '03'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '04'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '05'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '06'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '07'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '08'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '09'})),
-    list(fabric.faces_where({'panel': 'RING', 'strip': '10'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '00'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '01'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '02'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '03'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '04'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '05'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '06'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '07'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '08'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '09'})),
+    list(FABRIC.faces_where({'panel': 'RING', 'strip': '10'})),
 ]
+
+STRIPS = SOUTH + SW + WEST + NW + NORTH + RING
 
 # ==============================================================================
 # Visualise
 # ==============================================================================
 
-artist = MeshArtist(fabric, layer="Fabric")
-artist.clear_layer()
+ARTIST = MeshArtist(FABRIC, layer="Fabric")
+ARTIST.clear_layer()
 
-strips = SOUTH + SW + WEST + NW + NORTH + RING
+ARTIST.mesh = IDOS
 
-artist.layer = "Fabric::Intrados"
-artist.mesh = idos
+ARTIST.layer = "Fabric::Intrados"
 
-for i in range(0, len(strips), 2):
-    guid = artist.draw_faces(keys=strips[i], join_faces=True)
+for i in range(0, len(STRIPS), 2):
+    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
     rs.ObjectColor(guid, (255, 0, 0))
 
-for i in range(1, len(strips), 2):
-    guid = artist.draw_faces(keys=strips[i], join_faces=True)
+for i in range(1, len(STRIPS), 2):
+    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
     rs.ObjectColor(guid, (255, 128, 128))
 
-artist.layer = "Fabric::Normals"
-artist.draw_facenormals(color=(255, 0, 0), scale=0.05)
+ARTIST.layer = "Fabric::Normals"
+ARTIST.draw_facenormals(color=(255, 0, 0), scale=0.05)
 
-artist.layer = "Fabric::Extrados"
-artist.mesh = edos
+ARTIST.mesh = EDOS
 
-for i in range(0, len(strips), 2):
-    guid = artist.draw_faces(keys=strips[i], join_faces=True)
+ARTIST.layer = "Fabric::Extrados"
+
+for i in range(0, len(STRIPS), 2):
+    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
     rs.ObjectColor(guid, (0, 0, 255))
 
 for i in range(1, len(strips), 2):
-    guid = artist.draw_faces(keys=strips[i], join_faces=True)
+    guid = ARTIST.draw_faces(keys=STRIPS[i], join_faces=True)
     rs.ObjectColor(guid, (128, 128, 255))
 
-artist.layer = "Fabric::Normals"
-artist.draw_facenormals(color=(0, 0, 255), scale=0.05)
+ARTIST.layer = "Fabric::Normals"
+ARTIST.draw_facenormals(color=(0, 0, 255), scale=0.05)
