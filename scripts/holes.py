@@ -11,6 +11,7 @@ from compas.datastructures import mesh_flip_cycles
 from compas_rhino.artists import MeshArtist
 from compas.geometry import add_vectors
 from compas.geometry import scale_vector
+from compas.geometry import intersection_line_plane
 
 # ==============================================================================
 # Initialise
@@ -122,13 +123,18 @@ for name, panel in [('SOUTH', SOUTH), ('WEST', WEST), ('NORTH', NORTH), ('RING',
         points = []
         fkeys = []
         for fkey in faces:
+            origin = IDOS.face_centroid(fkey)
+            normal = IDOS.face_normal(fkey, unitized=True)
+            plane = origin, normal
             if SHELL.has_vertex(fkey):
                 fkeys.append(fkey)
                 normal = SHELL.vertex_normal(fkey)
                 xyz = SHELL.vertex_coordinates(fkey)
                 xyz_i = add_vectors(xyz, scale_vector(normal, -0.5 * THICKNESS))
+                line = xyz, xyz_i
+                x = intersection_line_plane(line, plane)
                 points.append({
-                    'pos' : xyz_i,
+                    'pos' : x,
                     'color' : color
                 })
         guid = ARTIST.draw_faces(keys=fkeys, join_faces=True)
@@ -148,13 +154,18 @@ for name, panel in [('SOUTH', SOUTH), ('WEST', WEST), ('NORTH', NORTH), ('RING',
         points = []
         fkeys = []
         for fkey in faces:
+            origin = EDOS.face_centroid(fkey)
+            normal = EDOS.face_normal(fkey, unitized=True)
+            plane = origin, normal
             if SHELL.has_vertex(fkey):
                 fkeys.append(fkey)
                 normal = SHELL.vertex_normal(fkey)
                 xyz = SHELL.vertex_coordinates(fkey)
                 xyz_i = add_vectors(xyz, scale_vector(normal, +0.5 * THICKNESS))
+                line = xyz, xyz_i
+                x = intersection_line_plane(line, plane)
                 points.append({
-                    'pos' : xyz_i,
+                    'pos' : x,
                     'color' : color
                 })
         guid = ARTIST.draw_faces(keys=fkeys, join_faces=True)

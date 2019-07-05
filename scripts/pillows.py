@@ -6,6 +6,7 @@ import os
 from random import sample
 
 from compas.datastructures import mesh_subdivide
+from compas.geometry import scale_vector
 from compas.rpc import Proxy
 
 from compas_fofin.datastructures import Shell
@@ -24,6 +25,7 @@ FILE_I = os.path.join(DATA, 'data.json')
 SHELL = Shell.from_json(FILE_I)
 
 SHELL.update_default_face_attributes({'children': None})
+SHELL.update_default_edge_attributes({'child': None})
 
 # ==============================================================================
 # Subdivide
@@ -32,6 +34,7 @@ SHELL.update_default_face_attributes({'children': None})
 SUBD1 = mesh_subdivide(SHELL, scheme='quad', k=1)
 
 SUBD1.update_default_face_attributes({'children': None})
+SUBD1.update_default_edge_attributes({'child': None})
 
 for fkey in SHELL.faces():
     children = []
@@ -40,13 +43,19 @@ for fkey in SHELL.faces():
         v_nbrs = SUBD1.vertex_neighbors(v)
         shared = list(set(u_nbrs) & set(v_nbrs))
         children += shared
-    key = list(set.intersection(*[set(SUBD1.vertex_neighbors(key)) for key in children]))[0]
-    children.append(key)
-    SHELL.set_face_attribute(fkey, 'children', children)
+        SHELL.set_edge_attribute((u, v), 'child', shared[0])
+
+    keys = list(set.intersection(*[set(SUBD1.vertex_neighbors(key)) for key in children]))
+    SHELL.set_face_attribute(fkey, 'children', children + keys)
+
+# ==============================================================================
+# Subdivide
+# ==============================================================================
 
 SUBD2 = mesh_subdivide(SUBD1, scheme='quad', k=1)
 
 SUBD2.update_default_face_attributes({'children': None})
+SUBD2.update_default_edge_attributes({'child': None})
 
 for fkey in SUBD1.faces():
     children = []
@@ -55,40 +64,51 @@ for fkey in SUBD1.faces():
         v_nbrs = SUBD2.vertex_neighbors(v)
         shared = list(set(u_nbrs) & set(v_nbrs))
         children += shared
-    key = list(set.intersection(*[set(SUBD2.vertex_neighbors(key)) for key in children]))[0]
-    children.append(key)
-    SUBD1.set_face_attribute(fkey, 'children', children)
+        SUBD1.set_edge_attribute((u, v), 'child', shared[0])
 
+    keys = list(set.intersection(*[set(SUBD2.vertex_neighbors(key)) for key in children]))
+    SUBD1.set_face_attribute(fkey, 'child', children + keys)
+
+# ==============================================================================
+# Pressure
+# ==============================================================================
+
+SUBD2.update_default_edge_attributes({'q': 1.0, 'f': 0.0, 'l': 0.0})
+SUBD2.update_default_vertex_attributes({'px': 0.0, 'py': 0.0, 'pz': 0.0, 'rx': 0.0, 'ry': 0.0, 'rz': 0.0, 'is_anchor': False})
+
+SUBD2.set_edges_attributes(['q', 'f', 'l'], [1.0, 0.0, 0.0])
+SUBD2.set_vertices_attributes(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'is_anchor'], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, False])
+
+for u, v in SHELL.edges():
+    child = SHELL.get_edge_attribute((u, v), 'child')
+    u_grandchild = SUBD1.get_edge_attribute((u, child), 'child')
+    v_grandchild = SUBD1.get_edge_attribute((v, child), 'child')
+    SUBD2.set_edge_attribute((u, u_grandchild), 'q', 10.0)
+    SUBD2.set_edge_attribute((child, u_grandchild), 'q', 10.0)
+    SUBD2.set_edge_attribute((v, v_grandchild), 'q', 10.0)
+    SUBD2.set_edge_attribute((child, v_grandchild), 'q', 10.0)
+
+for key in SUBD2.vertices():
+    if SHELL.has_vertex(key):
+        SUBD2.set_vertex_attribute(key, 'is_anchor', True)
+    normal = SUBD2.vertex_normal(key)
+    px, py, pz = scale_vector(normal, 0.01)
+    SUBD2.set_vertex_attribute(key, 'px', px)
+    SUBD2.set_vertex_attribute(key, 'py', py)
+    SUBD2.set_vertex_attribute(key, 'pz', pz)
+
+data = PROXY.fofin_numpy_proxy(SUBD2.to_data())    
+SUBD2.data = data
 
 # ==============================================================================
 # Visualise
 # ==============================================================================
 
-descendants = {}
-for root in sample(SHELL.faces(), k=10):
-    root = SHELL.get_any_face()
-    children = SHELL.get_face_attribute(root, 'children')
-    u = children[-1]
-    faces = []
-    for v in children[:-1]:
-        faces.append(SUBD1.halfedge[u][v])
-    grandchildren = []
-    for fkey in faces:
-        grandchildren += SUBD1.get_face_attribute(fkey, 'children')
-    descendants[root] = children + grandchildren
+anchors = list(SUBD2.vertices_where({'is_anchor': True}))
 
-
-ARTIST = ShellArtist(None, layer="Pillows")
+ARTIST = ShellArtist(SUBD2, layer="Pillows")
 ARTIST.clear_layer()
-
-ARTIST.mesh = SHELL
-ARTIST.layer = "Pillows::Control"
 ARTIST.draw_vertices(
-    keys=list(SHELL.face_vertices(root)),
-    color={key: (255, 0, 0) for key in SHELL.face_vertices(root)})
-ARTIST.draw_edges()
-
-ARTIST.mesh = SUBD2
-ARTIST.layer = "Pillows::Subd"
-ARTIST.draw_vertices(
-    color={key: (0, 255, 0) for key in children + grandchildren})
+    keys=anchors,
+    color={key: (255, 0, 0) for key in anchors})
+ARTIST.draw_faces()
