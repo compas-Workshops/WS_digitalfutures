@@ -75,6 +75,8 @@ for u, v in SHELL.edges():
 for key in S2.vertices():
     S2.set_vertex_attribute(key, 'is_anchor', SHELL.has_vertex(key))
 
+S2.set_vertices_attribute('is_anchor', True, keys=list(S2.vertices_on_boundary()))
+
 # ==============================================================================
 # EDOS/IDOS
 # ==============================================================================
