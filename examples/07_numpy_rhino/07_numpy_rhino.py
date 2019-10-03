@@ -4,7 +4,7 @@ from compas.rpc import Proxy
 from compas_rhino.artists import MeshArtist
 
 # create a proxy for the numerical package of COMPAS
-numerical = Proxy('compas.numerical', python='pythonw')
+numerical = Proxy('compas.numerical')
 
 # make a mesh from a sample OBJ file
 mesh = Mesh.from_obj(compas.get('faces.obj'))
